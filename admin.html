@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ניהול אסימונים - התחברות</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center">
+        <h1 class="text-xl font-bold mb-4">ניהול אסימונים</h1>
+        <button onclick="googleLogin()" class="bg-red-600 text-white p-2 rounded w-full">התחבר עם גוגל</button>
+    </div>
+
+    <div id="adminSection" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+        <h1 class="text-xl font-bold mb-4">יצירת אסימון חדש</h1>
+        <input type="text" id="tokenInput" placeholder="הכנס שם אסימון" class="w-full p-2 border rounded mb-4">
+        <button onclick="createNewToken()" class="w-full bg-blue-600 text-white p-2 rounded">צור אסימון</button>
+        <p id="message" class="mt-4 text-sm"></p>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+  apiKey: "AIzaSyDE8Fq9COJGtWzBreb1be-i7vy_ASJLsUo",
+  authDomain: "tzeva-adom-3fffe.firebaseapp.com",
+  projectId: "tzeva-adom-3fffe",
+  storageBucket: "tzeva-adom-3fffe.firebasestorage.app",
+  messagingSenderId: "892774546025",
+  appId: "1:892774546025:web:a18eda31d810f92a7cc0f8"
+};
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        function googleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                const user = result.user;
+                if (user.email === 'rb077858@gmail.com') {
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('adminSection').classList.remove('hidden');
+                } else {
+                    alert("אין לך הרשאת גישה לדף זה!");
+                    auth.signOut();
+                }
+            });
+        }
+
+        function createNewToken() {
+            const tokenName = document.getElementById('tokenInput').value;
+            db.collection("tokens").doc(tokenName).set({ active: true }).then(() => {
+                document.getElementById('message').innerText = "האסימון נוצר בהצלחה!";
+            });
+        }
+    </script>
+</body>
+</html>
+
