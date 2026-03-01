@@ -37,7 +37,7 @@
                 if (doc.exists && doc.data().active === true) {
                     document.getElementById("status").innerText = "Connection successful. Loading alerts...";
                     const iframe = document.getElementById("alertFrame");
-                    iframe.src = "https://www.oref.org.il/WarningMessages/Alert/alerts.json"; // Replace with your actual JSON data URL
+                    iframe.src = "https://api.tzevaadom.co.il/notifications"; // Replace with your actual JSON data URL
                     iframe.style.display = "block";
                 } else {
                     document.getElementById("status").innerText = "Access Denied: Invalid or inactive token.";
