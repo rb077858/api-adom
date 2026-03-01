@@ -2,23 +2,32 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ניהול אסימונים - התחברות</title>
+    <title>ניהול אסימונים</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-100 p-4">
+
     <div id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center">
         <h1 class="text-xl font-bold mb-4">ניהול אסימונים</h1>
         <button onclick="googleLogin()" class="bg-red-600 text-white p-2 rounded w-full">התחבר עם גוגל</button>
     </div>
 
-    <div id="adminSection" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md hidden">
-        <h1 class="text-xl font-bold mb-4">יצירת אסימון חדש</h1>
-        <input type="text" id="tokenInput" placeholder="הכנס שם אסימון" class="w-full p-2 border rounded mb-4">
-        <button onclick="createNewToken()" class="w-full bg-blue-600 text-white p-2 rounded">צור אסימון</button>
-        <p id="message" class="mt-4 text-sm"></p>
+    <div id="adminSection" class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+        <h1 class="text-xl font-bold mb-4">ניהול אסימונים</h1>
+        
+        <div class="mb-6">
+            <input type="text" id="tokenInput" placeholder="שם אסימון" class="w-full p-2 border rounded mb-2">
+            <div class="flex gap-2">
+                <button onclick="createNewToken()" class="flex-1 bg-blue-600 text-white p-2 rounded">צור אסימון</button>
+                <button onclick="generateRandomToken()" class="bg-gray-600 text-white p-2 rounded">אקראי</button>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-semibold mb-2">אסימונים קיימים:</h2>
+        <div id="tokenList" class="space-y-2"></div>
     </div>
 
     <script>
@@ -35,26 +44,52 @@
         const db = firebase.firestore();
 
         function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then((result) => {
-                const user = result.user;
-                if (user.email === 'rb077858@gmail.com') {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(res => {
+                if (res.user.email === 'rb077858@gmail.com') {
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('adminSection').classList.remove('hidden');
-                } else {
-                    alert("אין לך הרשאת גישה לדף זה!");
-                    auth.signOut();
-                }
+                    loadTokens();
+                } else { alert("אין הרשאה!"); auth.signOut(); }
             });
         }
 
+        function generateRandomToken() {
+            document.getElementById('tokenInput').value = Math.random().toString(36).substring(2, 10);
+        }
+
         function createNewToken() {
-            const tokenName = document.getElementById('tokenInput').value;
-            db.collection("tokens").doc(tokenName).set({ active: true }).then(() => {
-                document.getElementById('message').innerText = "האסימון נוצר בהצלחה!";
+            const name = document.getElementById('tokenInput').value;
+            if(!name) return;
+            db.collection("tokens").doc(name).set({ active: true }).then(() => loadTokens());
+        }
+
+        function toggleToken(id, currentStatus) {
+            db.collection("tokens").doc(id).update({ active: !currentStatus }).then(() => loadTokens());
+        }
+
+        function deleteToken(id) {
+            db.collection("tokens").doc(id).delete().then(() => loadTokens());
+        }
+
+        function loadTokens() {
+            db.collection("tokens").onSnapshot(snapshot => {
+                const list = document.getElementById('tokenList');
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center p-2 border rounded">
+                            <span>${doc.id}</span>
+                            <div>
+                                <button onclick="toggleToken('${doc.id}', ${data.active})" class="text-xs p-1 ${data.active ? 'bg-green-200' : 'bg-yellow-200'} rounded">
+                                    ${data.active ? 'פעיל' : 'חסום'}
+                                </button>
+                                <button onclick="deleteToken('${doc.id}')" class="text-xs p-1 bg-red-200 rounded">מחק</button>
+                            </div>
+                        </div>`;
+                });
             });
         }
     </script>
 </body>
 </html>
-
