@@ -6,22 +6,24 @@
     <title>Alerts Viewer</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+        #status { padding: 20px; text-align: center; }
+    </style>
 </head>
 <body>
     <div id="status">Verifying token...</div>
-    <iframe id="alertFrame" style="width:100%; height:800px; display:none; border:none;"></iframe>
+    <iframe id="alertFrame" style="width:100%; height:100vh; display:none; border:none;"></iframe>
 
     <script>
-        // --- Paste your Firebase configuration here ---
         const firebaseConfig = {
-  apiKey: "AIzaSyDE8Fq9COJGtWzBreb1be-i7vy_ASJLsUo",
-  authDomain: "tzeva-adom-3fffe.firebaseapp.com",
-  projectId: "tzeva-adom-3fffe",
-  storageBucket: "tzeva-adom-3fffe.firebasestorage.app",
-  messagingSenderId: "892774546025",
-  appId: "1:892774546025:web:a18eda31d810f92a7cc0f8"
-};
-        // ----------------------------------------------
+            apiKey: "AIzaSyDE8Fq9COJGtWzBreb1be-i7vy_ASJLsUo",
+            authDomain: "tzeva-adom-3fffe.firebaseapp.com",
+            projectId: "tzeva-adom-3fffe",
+            storageBucket: "tzeva-adom-3fffe.firebasestorage.app",
+            messagingSenderId: "892774546025",
+            appId: "1:892774546025:web:a18eda31d810f92a7cc0f8"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -32,18 +34,18 @@
         if (!token) {
             document.getElementById("status").innerText = "Error: No token provided in the URL.";
         } else {
-            // Check the database for the token
             db.collection("tokens").doc(token).get().then((doc) => {
                 if (doc.exists && doc.data().active === true) {
-                    document.getElementById("status").innerText = "Connection successful. Loading alerts...";
+                    // Hide the status text once access is granted
+                    document.getElementById("status").style.display = "none";
                     const iframe = document.getElementById("alertFrame");
-                    iframe.src = "https://api.tzevaadom.co.il/notifications"; // Replace with your actual JSON data URL
+                    iframe.src = "https://api.tzevaadom.co.il/notifications"; 
                     iframe.style.display = "block";
                 } else {
                     document.getElementById("status").innerText = "Access Denied: Invalid or inactive token.";
                 }
             }).catch((error) => {
-                document.getElementById("status").innerText = "Error connecting to database: " + error.message;
+                document.getElementById("status").innerText = "Error: " + error.message;
             });
         }
     </script>
